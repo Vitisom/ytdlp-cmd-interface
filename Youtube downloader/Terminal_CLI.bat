@@ -86,11 +86,11 @@ for %%L in (!LINKS!) do (
     echo Baixando: %%L
     echo --------------------------------
 
-    "%YTDLP%" --js-runtimes %JSRUNTIME% -x --audio-format mp3 --audio-quality !QUAL! --embed-thumbnail --add-metadata --get-title "%%L" > "%TEMP%\titulo.txt" 2>nul
+    "%YTDLP%" --js-runtimes %JSRUNTIME% -x --audio-format mp3 --audio-quality !QUAL! --embed-thumbnail --add-metadata --get-title -- "%%L" > "%TEMP%\titulo.txt" 2>nul
     set /p TITULO=<"%TEMP%\titulo.txt"
     if not defined TITULO set "TITULO=Desconhecido"
 
-    "%YTDLP%" --js-runtimes %JSRUNTIME% -x --audio-format mp3 --audio-quality !QUAL! --embed-thumbnail --add-metadata -o "%DOWNLOADS%\%%(title)s.%%(ext)s" "%%L"
+    "%YTDLP%" --js-runtimes %JSRUNTIME% -x --audio-format mp3 --audio-quality !QUAL! --embed-thumbnail --add-metadata -o "%DOWNLOADS%\%%(title)s.%%(ext)s" -- "%%L"
 
     if errorlevel 1 (
         powershell -NoProfile -Command "Write-Host '[ERRO] Falhou em %%L' -ForegroundColor Red"
@@ -118,6 +118,9 @@ pause
 goto :MENU
 
 :MP4
+set "TOTAL=0"
+set "COUNT=0"
+
 powershell -NoProfile -ExecutionPolicy Bypass -File "%MENU%" -submenu mp4
 set "formato=%errorlevel%"
 
@@ -143,6 +146,11 @@ if "!LINKS!"=="" (
 set "LINKS=!LINKS: =!"
 set "LINKS=!LINKS:,= !"
 
+:: Contagem de links
+for %%L in (!LINKS!) do (
+    if not "%%L"=="" set /a COUNT+=1
+)
+
 cls
 echo Iniciando downloads MP4...
 
@@ -153,24 +161,34 @@ for %%L in (!LINKS!) do (
     echo Baixando: %%L
     echo --------------------------------
 
-    "%YTDLP%" %JSRUNTIME% --get-title "%%L" > "%TEMP%\titulo.txt" 2>nul
+    "%YTDLP%" %JSRUNTIME% --get-title -- "%%L" > "%TEMP%\titulo.txt" 2>nul
     set /p TITULO=<"%TEMP%\titulo.txt"
     if not defined TITULO set "TITULO=Desconhecido"
 
-    "%YTDLP%" %JSRUNTIME% -f !FORMAT! --embed-thumbnail --add-metadata -o "%DOWNLOADS%\%%(title)s.%%(ext)s" "%%L"
+    "%YTDLP%" %JSRUNTIME% -f !FORMAT! --embed-thumbnail --add-metadata -o "%DOWNLOADS%\%%(title)s.%%(ext)s" -- "%%L"
 
     if errorlevel 1 (
         powershell -NoProfile -Command "Write-Host '[ERRO] Falhou em %%L' -ForegroundColor Red"
     ) else (
-        powershell -NoProfile -Command "Write-Host '[OK] Concluido' -ForegroundColor Green"
+        if !COUNT! gtr 1 (
+            set /a TOTAL+=1
+            powershell -NoProfile -Command "Write-Host '[OK] Concluido (!TOTAL!/!COUNT!)' -ForegroundColor Green"
+        ) else (
+            powershell -NoProfile -Command "Write-Host '[OK] Concluido' -ForegroundColor Green"
+        )
         echo %DATE% %TIME% ^| %%L ^| !TITULO! >> "%HISTORICO%"
     )
 
     timeout /t 2 >nul
 )
 
-echo.
-echo Todos os downloads MP4 finalizados.
+if !COUNT! gtr 1 (
+    echo.
+    echo ======================================
+    echo TOTAL DE VIDEOS BAIXADOS: !TOTAL! de !COUNT!
+    echo ======================================
+)
+
 pause
 goto :MENU
 
