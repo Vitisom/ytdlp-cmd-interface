@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-title YouTube Downloader PRO 4.6
+title YouTube Downloader PRO 4.7
 setlocal EnableDelayedExpansion
 
 :: ===== PATHS =====
