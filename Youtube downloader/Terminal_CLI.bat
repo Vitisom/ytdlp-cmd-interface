@@ -43,6 +43,9 @@ if !opcao! equ 4 exit
 goto :MENU
 
 :MP3
+set "TOTAL=0"
+set "COUNT=0"
+
 powershell -NoProfile -ExecutionPolicy Bypass -File "%MENU%" -submenu mp3
 set "qual=%errorlevel%"
 
@@ -51,7 +54,6 @@ if !qual! equ 2 set "aud=2"
 if !qual! equ 3 set "aud=5"
 if !qual! equ 4 goto :MENU
 if !qual! equ 0 goto :MENU
-
 
 cls
 echo ===== DOWNLOAD MP3 - qualidade !aud! =====
@@ -68,6 +70,11 @@ if "!LINKS!"=="" (
 
 set "LINKS=!LINKS: =!"
 set "LINKS=!LINKS:,= !"
+
+:: Contagem de links
+for %%L in (!LINKS!) do (
+    if not "%%L"=="" set /a COUNT+=1
+)
 
 cls
 echo Iniciando downloads MP3...
@@ -88,15 +95,25 @@ for %%L in (!LINKS!) do (
     if errorlevel 1 (
         powershell -NoProfile -Command "Write-Host '[ERRO] Falhou em %%L' -ForegroundColor Red"
     ) else (
-        powershell -NoProfile -Command "Write-Host '[OK] Concluido' -ForegroundColor Green"
+        if !COUNT! gtr 1 (
+            set /a TOTAL+=1
+            powershell -NoProfile -Command "Write-Host '[OK] Concluido (!TOTAL!/!COUNT!)' -ForegroundColor Green"
+        ) else (
+            powershell -NoProfile -Command "Write-Host '[OK] Concluido' -ForegroundColor Green"
+        )
         echo %DATE% %TIME% ^| %%L ^| !TITULO! >> "%HISTORICO%"
     )
 
     timeout /t 2 >nul
 )
 
-echo.
-echo Todos os downloads MP3 finalizados.
+if !COUNT! gtr 1 (
+    echo.
+    echo ======================================
+    echo TOTAL DE MUSICAS BAIXADAS: !TOTAL! de !COUNT!
+    echo ======================================
+)
+
 pause
 goto :MENU
 
