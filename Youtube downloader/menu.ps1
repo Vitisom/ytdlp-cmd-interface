@@ -66,7 +66,7 @@ if ($submenu -eq "") {
         "Sair"
     )
 
-    $escolha = Show-Menu -Opcoes $opcoes -Titulo "YOUTUBE DOWNLOADER PRO 4.6"
+    $escolha = Show-Menu -Opcoes $opcoes -Titulo "YOUTUBE DOWNLOADER PRO 4.7"
     exit $escolha
 }
 elseif ($submenu -eq "mp3") {
